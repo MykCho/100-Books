@@ -18,9 +18,9 @@ namespace _100_Books
         public Dictionary<string, int> WordsNumberOfUses { get; set; }
         public bool ProcessedOK { get; set; }
 
-        protected void SentenceProcess(string sentence)
+        protected void SentenceProcess(string sentence, char sentenceEnding)
         {
-            sentence = sentence.Trim();
+            sentence = sentence.Trim() + sentenceEnding;
             Console.WriteLine(sentence);
         }
         public Book(string fileName) {
@@ -76,9 +76,10 @@ namespace _100_Books
                         {
                             if (buffer[i] == '.' || buffer[i] == '?' || buffer[i] == '!')
                             {
+                                var sentenceEnding = buffer[i];
                                 sentence = buffer.Substring(0, i);
                                 buffer = buffer.Remove(0, i+1);
-                                this.SentenceProcess(sentence);
+                                this.SentenceProcess(sentence, sentenceEnding);
                                 i = 0;
                             }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,16 +13,56 @@ namespace _100_Books
     {
         public string Title { get; set; }
         public string LongestSentenceByNumberOfCharacters{ get; set; }
+        private int MostCharactersInSentence { get; set; }
         public string ShortestSentenceByNumberOfWords { get; set; }
-        public string LongestWord { get;} //not yet sure if needed
-        public Dictionary<char, int> LettersNumberOfUses { get; set; }
-        public Dictionary<string, int> WordsNumberOfUses { get; set; }
+        public string LongestWord { get; set; }
+        private int LeastWordsInSentence { get; set; }
+        public Dictionary<char, int> LettersNumberOfUses = new Dictionary<char, int>();
+        public Dictionary<string, int> WordsNumberOfUses = new Dictionary<string, int>();
         public bool ProcessedOK { get; set; }
 
         protected void SentenceProcess(string sentence, char sentenceEnding)
         {
             sentence = sentence.Trim() + sentenceEnding;
-            Console.WriteLine(sentence);
+            //Console.WriteLine(sentence);
+
+            //setting longest sentence
+            if (sentence.Length > MostCharactersInSentence)
+            {
+                LongestSentenceByNumberOfCharacters = sentence;
+                MostCharactersInSentence = sentence.Length;
+            }
+
+            //shortest sentence
+            if (ShortestSentenceByNumberOfWords == null) ShortestSentenceByNumberOfWords = sentence;
+            
+            string[] words = sentence.Split(new char[] {' ', '.', ',', '"', '?', '!', '[', ']', '-'}, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (LeastWordsInSentence == 0) LeastWordsInSentence = words.Length; //amount of words
+            
+            if (words.Length < LeastWordsInSentence && words.Length > 0)
+            {
+                LeastWordsInSentence = words.Length;
+                ShortestSentenceByNumberOfWords = sentence;
+            }
+
+            foreach (var word in words)
+            {
+               if (LongestWord == null) LongestWord = word;
+                if (LongestWord.Length < word.Length) LongestWord = word;
+                if (WordsNumberOfUses.ContainsKey(word.ToLower())) WordsNumberOfUses[word.ToLower()]++;
+                else WordsNumberOfUses[word.ToLower()] = 1;
+                
+                
+                foreach (var letter in word)
+                {
+                    if (Char.IsLetter(letter)) {
+                        if (LettersNumberOfUses.ContainsKey(letter)) LettersNumberOfUses[letter]++;
+                        else LettersNumberOfUses[letter] = 1;
+                    }
+                }
+            }
+
         }
         public Book(string fileName) {
             if (!File.Exists(fileName)) { throw new FileNotFoundException($"Init file {fileName} is not found."); }
@@ -52,7 +93,7 @@ namespace _100_Books
                     
                     if (!titleIsFound && buffer.Contains(titleString)) //check is done just in case there is another such string in text
                     {
-                        this.Title = buffer.Substring(buffer.IndexOf(titleString) + titleString.Length);
+                        Title = buffer.Substring(buffer.IndexOf(titleString) + titleString.Length);
                         titleIsFound = true;
                     }
 
